@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A principal hiring simulation for preservice teachers built on the CDPA dispositions rubric.">
+<meta name="author" content="Dr. Rebecca Cooper">
+<title>The Hiring Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500;700&display=swap">
+<style>
+html{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+/* Layout: a principal's desk. Folder tabs down the left, the open personnel file on the right, the hiring-committee debrief slides in under the decision. */
+:root{
+  --bg:#E9EDF2; --surface:#FFFFFF; --surface-2:#F5F7FA; --ink:#1B2331; --muted:#566174; --line:#D2D9E3;
+  --folder:#EAD59C; --folder-deep:#D9BE6E; --folder-ink:#4E3F14;
+  --bus:#F2A900; --bus-ink:#3A2A00;
+  --hire:#17784A; --hire-bg:#E3F4EA; --no:#B42318; --no-bg:#FCE8E6; --judge:#6B45B8; --judge-bg:#EFE8FB;
+  --link:#1F5FBF;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11151C; --surface:#1A2029; --surface-2:#212833; --ink:#E7EBF1; --muted:#A3ADBC; --line:#2E3745;
+  --folder:#3B3322; --folder-deep:#57492A; --folder-ink:#EBD9A2;
+  --bus:#F5B92E; --bus-ink:#2A1E00;
+  --hire:#53C78E; --hire-bg:#16301F; --no:#F2766A; --no-bg:#3A1A17; --judge:#B89DF2; --judge-bg:#2A2140;
+  --link:#7FB0FF; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#11151C; --surface:#1A2029; --surface-2:#212833; --ink:#E7EBF1; --muted:#A3ADBC; --line:#2E3745;
+  --folder:#3B3322; --folder-deep:#57492A; --folder-ink:#EBD9A2;
+  --bus:#F5B92E; --bus-ink:#2A1E00;
+  --hire:#53C78E; --hire-bg:#16301F; --no:#F2766A; --no-bg:#3A1A17; --judge:#B89DF2; --judge-bg:#2A2140;
+  --link:#7FB0FF; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 48px}
+a{color:var(--link)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+.wrap{max-width:1180px;margin:0 auto}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--bus);outline-offset:2px}
+
+/* Masthead */
+.mast{padding-block:28px 22px;display:grid;gap:18px;grid-template-columns:1fr auto;align-items:end;border-bottom:2px solid var(--ink)}
+.mast h1{font-size:clamp(34px,6vw,60px);font-weight:800;letter-spacing:-.02em}
+.mast h1 span{background:var(--bus);color:var(--bus-ink);padding:0 .18em;border-radius:4px}
+.mast p{margin:8px 0 0;max-width:62ch;color:var(--muted)}
+.tally{display:flex;gap:10px;flex-wrap:wrap}
+.tally div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px;text-align:center;min-width:86px}
+.tally b{display:block;font-family:var(--f-display);font-size:26px;font-variant-numeric:tabular-nums}
+.tally small{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:760px){.mast{grid-template-columns:1fr}}
+
+/* How it works */
+.how{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0}
+.how div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15px}
+.how b{font-family:var(--f-mono);font-size:12px;color:var(--folder-ink);background:var(--folder);border-radius:4px;padding:1px 6px;margin-right:6px}
+@media (max-width:860px){.how{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.how{grid-template-columns:1fr}}
+
+/* Desk layout */
+.desk{display:grid;grid-template-columns:270px minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.desk{grid-template-columns:1fr}}
+.drawer{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:6px}
+.drawer h2{font-size:15px;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.tab{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--folder-deep);border-radius:8px;padding:9px 10px;color:var(--ink)}
+.tab:hover{background:var(--surface-2)}
+.tab[aria-current="true"]{background:var(--folder);border-color:var(--folder-deep);color:var(--folder-ink)}
+.tab .no{font-family:var(--f-mono);font-size:12px;opacity:.75}
+.tab .nm{font-weight:700;line-height:1.2}
+.tab .ps{display:block;font-weight:400;font-size:13px;opacity:.8}
+.pill{font-family:var(--f-mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.pill.open{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.pill.hire{background:var(--hire-bg);color:var(--hire)}
+.pill.pass{background:var(--no-bg);color:var(--no)}
+@media (max-width:900px){
+  .drawer{position:static;flex-direction:row;overflow-x:auto;padding-bottom:6px}
+  .drawer h2{display:none}
+  .tab{min-width:210px}
+}
+
+/* The file */
+.file{background:var(--surface);border:1px solid var(--line);border-radius:4px 14px 14px 14px;position:relative;overflow:hidden}
+.file-head{background:var(--folder);color:var(--folder-ink);padding:20px 24px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;position:relative}
+.mono-badge{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:26px;background:var(--surface);color:var(--ink);border:3px solid var(--folder-deep)}
+.file-head h2{font-size:clamp(26px,3.6vw,36px);font-weight:800}
+.file-head .meta{font-size:15px;margin-top:2px}
+.file-head .fileno{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+.stamp{position:absolute;right:22px;top:16px;font-family:var(--f-mono);font-weight:700;font-size:clamp(20px,3vw,30px);letter-spacing:.08em;padding:6px 14px;border:4px solid currentColor;border-radius:6px;transform:rotate(-9deg);background:color-mix(in srgb,var(--surface) 70%,transparent);animation:thunk .35s cubic-bezier(.2,1.6,.4,1) both}
+.stamp.hire{color:var(--hire)} .stamp.pass{color:var(--no)}
+@keyframes thunk{from{transform:rotate(-9deg) scale(2.2);opacity:0}to{transform:rotate(-9deg) scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.stamp{animation:none}}
+@media (max-width:560px){.stamp{position:static;display:inline-block;grid-column:1/-1;justify-self:start}}
+
+.file-body{padding:22px 24px;display:grid;gap:22px}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.quick span{font-size:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 10px}
+.sec h3{font-size:19px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.sec h3 i{font-style:normal;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.sec ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.note{background:var(--surface-2);border-left:4px solid var(--line);padding:10px 14px;border-radius:0 8px 8px 0;margin:0 0 8px}
+.note .who{display:block;font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-bottom:2px}
+.qa{display:grid;gap:10px}
+.qa p{margin:0}
+.qa .q{font-weight:700}
+.qa .a{padding-left:14px;border-left:3px solid var(--bus)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+
+/* CDPA snapshot */
+.cdpa{display:grid;gap:6px}
+.crow{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:12px;align-items:center;font-size:15px}
+.scale{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.scale i{height:12px;border-radius:3px;background:var(--line)}
+.scale.s1 i:nth-child(-n+1){background:var(--no)}
+.scale.s2 i:nth-child(-n+2){background:var(--bus)}
+.scale.s3 i:nth-child(-n+3){background:var(--hire)}
+.scale.s4 i{background:var(--hire)}
+.slab{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-align:right;margin-top:2px}
+.legend{font-size:13px;color:var(--muted)}
+
+/* Decision */
+.decide{border-top:2px dashed var(--line);padding:22px 24px;background:var(--surface-2);display:grid;gap:14px}
+.decide h3{font-size:22px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:14px;text-align:left;display:grid;gap:2px}
+.choice b{font-family:var(--f-display);font-size:20px}
+.choice small{color:var(--muted);font-size:14px}
+.choice.hire[aria-pressed="true"]{border-color:var(--hire);background:var(--hire-bg)}
+.choice.hire[aria-pressed="true"] b{color:var(--hire)}
+.choice.pass[aria-pressed="true"]{border-color:var(--no);background:var(--no-bg)}
+.choice.pass[aria-pressed="true"] b{color:var(--no)}
+.choice:disabled{cursor:default;opacity:.85}
+@media (max-width:460px){.choices{grid-template-columns:1fr}}
+label.why{font-weight:700}
+textarea{width:100%;min-height:130px;font:inherit;font-size:16px;line-height:1.5;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);resize:vertical}
+textarea:disabled{opacity:.9}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.count{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.btn{border:none;border-radius:10px;padding:12px 20px;font-weight:700;background:var(--ink);color:var(--surface)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.bus{background:var(--bus);color:var(--bus-ink)}
+.confirm{background:var(--surface);border:2px solid var(--bus);border-radius:12px;padding:14px;display:grid;gap:10px}
+.confirm .row{justify-content:flex-start}
+.hint{font-size:14px;color:var(--muted);margin:0}
+
+/* Debrief */
+.debrief{padding:24px;display:grid;gap:18px;border-top:2px solid var(--ink)}
+.verdict{border-radius:12px;padding:18px 20px;display:grid;gap:6px}
+.verdict.hire{background:var(--hire-bg)} .verdict.no{background:var(--no-bg)} .verdict.judge{background:var(--judge-bg)}
+.verdict .tag{font-family:var(--f-mono);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.verdict.hire .tag{color:var(--hire)} .verdict.no .tag{color:var(--no)} .verdict.judge .tag{color:var(--judge)}
+.verdict h3{font-size:clamp(22px,3vw,28px)}
+.verdict p{margin:0;max-width:72ch}
+.match{font-weight:700}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:700px){.dgrid{grid-template-columns:1fr}}
+.box{border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start}
+.box h4{margin:0;font-family:var(--f-display);font-size:17px}
+.box ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.box.train{border-top:5px solid var(--bus)}
+.box.deal{border-top:5px solid var(--no)}
+.box.strong{border-top:5px solid var(--hire)}
+.box.evid{border-top:5px solid var(--link)}
+.plan{display:grid;gap:10px}
+.plan div{display:grid;gap:2px}
+.plan b{font-size:15px}
+.cues{display:flex;flex-wrap:wrap;gap:8px}
+.cue{font-size:14px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+.cue.hit{border-color:var(--hire);background:var(--hire-bg)}
+.cue.hit::before{content:"✓ ";color:var(--hire);font-weight:700}
+.yours{background:var(--surface-2);border-radius:10px;padding:12px 14px;font-style:italic;white-space:pre-wrap}
+.cite{font-size:13px;color:var(--muted)}
+.real{background:var(--folder);color:var(--folder-ink);border-radius:12px;padding:18px 20px;display:grid;gap:6px;border:1px dashed var(--folder-deep)}
+.real .eyebrow{color:var(--folder-ink);opacity:.85}
+.real h4{margin:0;font-family:var(--f-display);font-size:20px}
+.real p{margin:0;max-width:78ch}
+.real a{color:inherit;font-weight:600}
+.real .cite{color:var(--folder-ink);opacity:.9}
+.nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+/* Summary + references */
+.lower{margin-top:40px;display:grid;gap:28px}
+.lower h2{font-size:clamp(24px,3vw,32px)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:14px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:560px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+#export{width:100%;min-height:160px;font-family:var(--f-mono);font-size:13px}
+.refs{display:grid;gap:8px;padding-left:20px;margin:0;font-size:15px}
+.cov{min-width:720px;font-size:14px}
+.cov th,.cov td{padding:5px 6px;text-align:center}
+.cov th:first-child,.cov td:first-child{text-align:left;white-space:nowrap}
+.cov td.c{font-family:var(--f-mono);font-weight:700;border-radius:4px}
+.cov .s1,.sw.s1{background:var(--no-bg);color:var(--no)}
+.cov .s2,.sw.s2{background:color-mix(in srgb,var(--bus) 28%,var(--surface));color:var(--ink)}
+.cov .s3,.sw.s3{background:var(--hire-bg);color:var(--hire)}
+.cov .s4,.sw.s4{background:var(--hire);color:var(--surface)}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin:0 4px 0 10px;border:1px solid var(--line)}
+.cov tr.gap td:first-child{color:var(--no)}
+.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;margin-top:20px}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <div class="eyebrow">Hollis County Schools · Hiring season 2027–28 · Fictional district</div>
+      <h1>You're the <span>Principal</span>.</h1>
+      <p>Thirteen teacher candidates are on your desk. Each file mixes strong and weak professional dispositions from the CDPA rubric. Decide who you would hire, defend it in writing, and lock it in. Then see what a hiring committee decided and what the research and Georgia law say.</p>
+    </div>
+    <div class="tally" aria-live="polite">
+      <div><b id="t-done">0</b><small>Decided</small></div>
+      <div><b id="t-hire">0</b><small>Hired</small></div>
+      <div><b id="t-match">0</b><small>Matched</small></div>
+    </div>
+  </header>
+
+  <section class="how" aria-label="How it works">
+    <div><b>1</b>Read the whole file: résumé, references, interview, and the university supervisor's CDPA snapshot.</div>
+    <div><b>2</b>Choose <strong>Hire</strong> or <strong>Don't hire</strong>.</div>
+    <div><b>3</b>Write why. Name the dispositions (by CDPA item number) that drove your call.</div>
+    <div><b>4</b>Lock it in. Locked answers can't change. Then read the committee debrief.</div>
+  </section>
+
+  <div class="desk">
+    <nav class="drawer" id="drawer" aria-label="Candidate files"><h2>Candidate files</h2></nav>
+    <main id="main"></main>
+  </div>
+
+  <section class="lower">
+    <div class="panel" id="summary">
+      <h2>Your hiring record</h2>
+      <p class="hint" id="sum-hint">Decide at least one candidate to start your record.</p>
+      <div class="tablewrap"><table><thead><tr><th>Candidate</th><th>Your call</th><th>Committee</th><th>Your reason</th></tr></thead><tbody id="sum-body"></tbody></table></div>
+      <div class="row"><strong>Turn it in</strong><div class="row"><button class="btn bus" id="copy" type="button">Copy my responses</button><button class="btn ghost" id="reset" type="button">Start over</button></div></div>
+      <div id="reset-confirm" class="confirm" hidden><p style="margin:0">Clear every decision and rationale on this device?</p><div class="row"><button class="btn" id="reset-yes" type="button">Yes, clear everything</button><button class="btn ghost" id="reset-no" type="button">Keep my work</button></div></div>
+      <label for="export" class="hint">Your responses as text. Copy and paste into your course dropbox or discussion.</label>
+      <textarea id="export" readonly></textarea>
+    </div>
+
+    <div class="panel">
+      <h2>The bigger picture</h2>
+      <p style="margin:0;max-width:72ch">The committee's rule of thumb in every debrief: <strong>skills and habits can be coached; ethics, safety, and beliefs about students are much harder to change.</strong> Time management, parent communication, and stress regulation respond to mentoring and a supportive school. A failure to report suspected abuse, an inappropriate relationship with students, dishonesty, or a fixed belief that some students can't learn put children at risk on day one. Research backs up both halves. Coaching moves practice, and schools with strong professional environments grow their teachers faster. Still, no single interview signal predicts success, so good principals read the whole file.</p>
+    </div>
+
+    <div class="panel">
+      <h2>CDPA coverage map</h2>
+      <p class="hint">For instructors. Each column is a candidate file; each cell is the university supervisor's rating on that item. Red and gold cells are the weaknesses students must weigh. Every one of the 24 items appears as a weakness in at least one file.</p>
+      <div class="tablewrap"><table class="cov" id="cov"></table></div>
+      <p class="legend"><span class="sw s1"></span>1 Unacceptable <span class="sw s2"></span>2 Needs Development <span class="sw s3"></span>3 Proficient <span class="sw s4"></span>4 Exemplary · blank = not rated in that file</p>
+    </div>
+
+    <div class="panel">
+      <h2>Sources</h2>
+      <ol class="refs">
+        <li>Afolabi, C., Nweke, W., &amp; Perkins, T. (2017). <em>Candidate Dispositions Performance Assessment (CDPA) Rubric.</em> All rights reserved. Items and level descriptors are paraphrased here for instruction.</li>
+        <li>Georgia Professional Standards Commission. <em>The Code of Ethics for Educators</em>, Ga. Comp. R. &amp; Regs. 505-6-.01 (eff. Jan. 1, 2024). <a href="https://www.law.cornell.edu/regulations/georgia/Ga-Comp-R-Regs-R-505-6-.01" target="_blank" rel="noopener">Full text</a></li>
+        <li>O.C.G.A. § 19-7-5, Georgia's mandated reporter law. <a href="https://oca.georgia.gov/node/35" target="_blank" rel="noopener">Georgia Office of the Child Advocate summary</a></li>
+        <li>Miller, R. T., Murnane, R. J., &amp; Willett, J. B. (2008). Do teacher absences impact student achievement? NBER Working Paper 13356. <a href="https://www.nber.org/papers/w13356" target="_blank" rel="noopener">NBER</a></li>
+        <li>Jacob, B. A., Rockoff, J. E., Taylor, E. S., Lindy, B., &amp; Rosen, R. (2018). Teacher applicant hiring and teacher performance: Evidence from DC Public Schools. <em>Journal of Public Economics, 166</em>, 81–97. <a href="https://annenberg.brown.edu/publications/teacher-applicant-hiring-and-teacher-performance-evidence-dc-public-schools" target="_blank" rel="noopener">Abstract</a></li>
+        <li>Rockoff, J. E., Jacob, B. A., Kane, T. J., &amp; Staiger, D. O. (2011). Can you recognize an effective teacher when you recruit one? <em>Education Finance and Policy, 6</em>(1), 43–74. <a href="https://www.nber.org/papers/w14485" target="_blank" rel="noopener">NBER</a></li>
+        <li>Kraft, M. A., &amp; Papay, J. P. (2014). Can professional environments in schools promote teacher development? <em>Educational Evaluation and Policy Analysis, 36</em>(4), 476–500. <a href="https://www.matthewakraft.com/new-page-25" target="_blank" rel="noopener">Abstract</a></li>
+        <li>Kraft, M. A., Blazar, D., &amp; Hogan, D. (2018). The effect of teacher coaching on instruction and achievement: A meta-analysis of the causal evidence. <em>Review of Educational Research, 88</em>(4), 547–588. <a href="https://annenberg.brown.edu/publications/effect-teacher-coaching-instruction-and-achievement-meta-analysis-causal-evidence" target="_blank" rel="noopener">Abstract</a></li>
+        <li>Gershenson, S., Holt, S. B., &amp; Papageorge, N. W. (2016). Who believes in me? The effect of student–teacher demographic match on teacher expectations. <em>Economics of Education Review.</em> <a href="https://www.sciencedaily.com/releases/2016/03/160330123500.htm" target="_blank" rel="noopener">Summary</a>; Papageorge, Gershenson, &amp; Kang, <a href="https://docs.iza.org/dp10165.pdf" target="_blank" rel="noopener">Teacher Expectations Matter</a> (IZA DP 10165).</li>
+        <li>Roorda, D. L., Koomen, H. M. Y., Spilt, J. L., &amp; Oort, F. J. (2011). The influence of affective teacher–student relationships on students' school engagement and achievement. <em>Review of Educational Research, 81</em>(4), 493–529. <a href="https://research.vu.nl/en/publications/the-influence-of-affective-teacher-student-relationships-on-stude/" target="_blank" rel="noopener">Abstract</a></li>
+        <li>Jennings, P. A., &amp; Greenberg, M. T. (2009). The prosocial classroom: Teacher social and emotional competence in relation to student and classroom outcomes. <em>Review of Educational Research, 79</em>(1), 491–525. <a href="https://pure.psu.edu/en/publications/the-prosocial-classroom-teacher-social-and-emotional-competence-i/" target="_blank" rel="noopener">Abstract</a></li>
+        <li>Ronfeldt, M., Farmer, S. O., McQueen, K., &amp; Grissom, J. A. (2015). Teacher collaboration in instructional teams and student achievement. <em>American Educational Research Journal, 52</em>(3). <a href="https://news.umich.edu/?p=22990" target="_blank" rel="noopener">University of Michigan summary</a></li>
+        <li>Lewis, M. (2025, Feb. 26). Teacher discipline investigations in Georgia [GPB with The Macon Telegraph]. <a href="https://gpb.org/node/1272141" target="_blank" rel="noopener">GPB</a></li>
+        <li>Ingersoll, R. M., &amp; Smith, T. M. (2004). What are the effects of induction and mentoring on beginning teacher turnover? <em>American Educational Research Journal, 41</em>(3). <a href="https://repository.upenn.edu/gse_pubs/135/" target="_blank" rel="noopener">Penn repository</a></li>
+        <li>Kraft, M. A., &amp; Dougherty, S. M. (2013). The effect of teacher–family communication on student engagement. <em>Journal of Research on Educational Effectiveness, 6</em>(3), 199–222. <a href="https://www.matthewakraft.com/new-page-95" target="_blank" rel="noopener">Abstract</a></li>
+        <li>TNTP. (2018). <em>The Opportunity Myth.</em> <a href="https://tntp.org/press-release/new-research-follows-4000-students-finds-most-are-missing-key-in-school-res/" target="_blank" rel="noopener">TNTP</a></li>
+        <li>RAND State of the American Teacher Survey, 2024, as summarized by <a href="https://www.childtrends.org/publications/teachers-job-related-stress-remains-high" target="_blank" rel="noopener">Child Trends</a>.</li>
+        <li>Jackson, C. K., &amp; Bruegmann, E. (2009). Teaching students and teaching each other: The importance of peer learning for teachers. NBER Working Paper 15202. <a href="https://www.nber.org/papers/w15202" target="_blank" rel="noopener">NBER</a></li>
+        <li>Sadler, P. M., Sonnert, G., Coyle, H. P., Cook-Smith, N., &amp; Miller, J. L. (2013). The influence of teachers' knowledge on student learning in middle school physical science classrooms. <em>American Educational Research Journal.</em> <a href="https://www.sciencedaily.com/releases/2013/05/130502131936.htm" target="_blank" rel="noopener">Summary</a></li>
+        <li>Papay, J. P., &amp; Kraft, M. A. (2015). Productivity returns to experience in the teacher labor market. <em>Journal of Public Economics.</em> <a href="https://annenberg.brown.edu/publications/productivity-returns-experience-teacher-labor-market-methodological-challenges-and-new" target="_blank" rel="noopener">Abstract</a></li>
+        <li>Education Week Research Center. (2018). How many teachers are chronically absent? (Civil Rights Data Collection, 2015–16). <a href="https://www.edweek.org/leadership/how-many-teachers-are-chronically-absent-from-class-in-your-state/2018/06" target="_blank" rel="noopener">Education Week</a></li>
+        <li>News reports cited in debriefs: <a href="https://www.cbsnews.com/baltimore/news/teacher-in-hot-water-for-degrading-social-media-posts-about-students/" target="_blank" rel="noopener">CBS Baltimore (2016)</a>, <a href="https://www.foxla.com/news/assistant-principals-charged-rialto-campus-sex-assaults" target="_blank" rel="noopener">FOX 11 Los Angeles (2022)</a>, <a href="https://www.wdef.com/?p=57119" target="_blank" rel="noopener">WDEF News 12</a>, <a href="https://www.wtkr.com/2019/07/03/a-failed-high-school-chemistry-experiment-resulted-in-nearly-60-million-in-damages" target="_blank" rel="noopener">WTKR / CNN (2019)</a>.</li>
+        <li>American Chemical Society. Sample lab safety guidelines and safety acknowledgment forms. <a href="https://www.acs.org/content/dam/acsorg/chemical-safety/teach--and-learn/sample-lab-safety-guidelines-and-safety-acknowledgment-forms.pdf" target="_blank" rel="noopener">ACS</a></li>
+      </ol>
+      <p class="foot">All candidates, schools, and people are fictional composites. Hollis County Schools is not a real district. Debriefs model one experienced committee's reasoning; reasonable principals can disagree on the judgment calls. © 2026 Dr. Rebecca Cooper. Licensed CC BY-NC 4.0. CDPA rubric © 2017 Comfort Afolabi, Winifred Nweke, and Tasha Perkins.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const ITEMS = {1:"Integrity",2:"Interaction with Students",3:"Attitude & Demeanor",4:"Communication",5:"High Expectations for All",6:"Attendance/Punctuality",7:"Dependability & Reliability",8:"Interaction with Adults",9:"Collaboration",10:"Organization & Preparedness",11:"Teachability & Adaptability",12:"Content Knowledge",13:"Cultural Sensitivity",14:"Assessment",15:"Fairness",16:"Use of Technology",17:"Time Management",18:"Self-Control",19:"Professional Appearance",20:"Initiative",21:"Professional Judgement",22:"Passion for Teaching",23:"Commitment to School",24:"Problem Solving"};
+const LEVEL = {1:"Unacceptable",2:"Needs Development",3:"Proficient",4:"Exemplary"};
+
+/* verdict.type: hire | no | judge.  verdict.lean (for judge): hire | pass */
+const C = [
+{
+ id:"bell", name:"Marcus Bell", initials:"MB", role:"9th Grade Biology", meta:"MAT completer · Student taught at a large suburban high school",
+ quick:["GACE Biology: passed","Coached JV soccer as a volunteer","Bilingual (English/Spanish)"],
+ resume:["Designed a stream-ecology unit with water-quality testing at the creek behind his placement school","Started a lunchtime 'Bio Lab Open House' that drew 20+ students a week","Two late lesson-plan submissions to his university supervisor during student teaching"],
+ refs:[
+  {who:"Mentor teacher, 14 years",txt:"Kids adore him and they work for him. His labs are the best I've seen from a student teacher. His one weak spot is clock management. Labs run long, cleanup eats the bell, and twice his plans came in the morning of the lesson."},
+  {who:"University supervisor",txt:"He hears feedback and acts on it. After I flagged his transitions he started using a visible timer, and his last observation was much tighter."}
+ ],
+ interview:[
+  {q:"Tell us about a lesson that went badly.",a:"My first enzyme lab. I ran out of time, kids left with goggles on, and nobody wrote conclusions. Now I script my cleanup and post the timer. I'm still not where I want to be with pacing."},
+  {q:"How do you plan a week?",a:"Honestly, I plan in bursts. I know I need a better system and I'd love a planning partner."}
+ ],
+ cdpa:[[2,4],[22,4],[10,3],[11,4],[17,2],[6,2]],
+ verdict:{type:"hire",headline:"Hire, with a 90-day growth plan",
+  summary:"Every red flag in this file is a habit, and Marcus already knows it and is working on it. The things that are hardest to teach (rapport, passion, openness to feedback) are exemplary.",
+  strengths:["Item 2 and 22: students engage and he loves the work","Item 11: names his own weakness before you ask and shows a change after feedback","Item 12: strong, current content with authentic field investigations"],
+  train:[{item:17,plan:"Pair him with a grade-level planning partner. Lesson plans due Thursday for the following week, checked by the department chair for six weeks."},{item:6,plan:"Set the expectation in writing at hire. Two tardies in a semester is the line on the CDPA. Revisit at the first TKES check-in."}],
+  evidence:[
+   {t:"Coaching works on exactly this kind of gap. Across 60 causal studies, coaching improved teachers' instructional practice by about half a standard deviation and student achievement by 0.18 SD.",c:"Kraft, Blazar, & Hogan, 2018"},
+   {t:"Teachers in the most supportive professional environments improved 38% more over ten years than teachers in the least supportive ones. Your school's systems are part of whether Marcus improves.",c:"Kraft & Papay, 2014"},
+   {t:"Positive teacher–student relationships show medium-to-large associations with student engagement.",c:"Roorda et al., 2011"}
+  ],
+  cues:[{l:"Time management (17)",k:["time","late","pacing","clock","17","deadline"]},{l:"Takes feedback (11)",k:["feedback","teachab","11","coach","reflect"]},{l:"Rapport (2)",k:["rapport","relationship","students love","adore","2 ","engag"]},{l:"Tardies (6)",k:["tard","punctual","attendance","6"]}]}
+},
+{
+ id:"ortiz", name:"Danielle Ortiz", initials:"DO", role:"7th Grade Math", meta:"MAT completer · Student taught at a Title I middle school",
+ quick:["GACE Middle Grades Math: top score in her cohort","Mock lesson rated 'outstanding' by panel","Created a math-talk routine her mentor adopted"],
+ resume:["Built a spiraled review system that raised her classes' unit-test averages","Runs a teacher-life Instagram account with about 4,000 followers"],
+ refs:[
+  {who:"Mentor teacher",txt:"The strongest math teacher I've hosted. But in March she posted a photo of a stack of graded quizzes. Student names and scores were readable. The caption joked that 'some of y'all really chose violence on fractions.' A parent recognized her son's paper."},
+  {who:"Assistant principal, placement school",txt:"When I asked her to take it down, she said it was her personal account and her students would never see it. She did delete it after I told her it would go to her university. She did not apologize to the family."}
+ ],
+ interview:[
+  {q:"We heard about a social media post. What happened?",a:"It was blown out of proportion. Every teacher account posts grading pics. I deleted it, so it's handled."},
+  {q:"What would you do differently?",a:"Probably blur the names next time."}
+ ],
+ cdpa:[[12,4],[10,4],[14,3],[1,1],[16,1],[11,2]],
+ verdict:{type:"no",headline:"Don't hire",
+  summary:"A confidentiality breach is serious, but a new teacher who owns it fully and changes can sometimes recover. Danielle minimized it twice, once to the AP and once to you. The problem is not the photo. It's that she still doesn't see why it was wrong.",
+  strengths:["Item 12 and 10: genuinely exceptional content and planning","Her mock lesson is the kind of signal research says predicts performance"],
+  deal:"Sharing student grades publicly falls under Georgia's Code of Ethics Standard 7 (Confidential Information), which names student academic records and assessment results. Combined with CDPA Item 11 (defensive about feedback) and Item 16 (social media), the risk is that it happens again, with your school's name attached.",
+  evidence:[
+   {t:"Georgia's Code of Ethics lists sharing confidential student academic records and assessment results as unethical conduct.",c:"GaPSC Rule 505-6-.01, Standard 7"},
+   {t:"Screening measures like a mock lesson do predict teacher performance. That's why this one is painful: you are passing on real talent because the dispositional risk outweighs it.",c:"Jacob et al., 2018"},
+   {t:"No single measure predicts success. Combining cognitive and non-cognitive information gives the best picture.",c:"Rockoff et al., 2011"}
+  ],
+  cues:[{l:"Confidentiality (1, Std 7)",k:["confiden","privacy","ferpa","names","grades","standard 7"]},{l:"Defensive / no ownership (11)",k:["defens","apolog","own","feedback","11","minimiz","excuse"]},{l:"Social media (16)",k:["social media","instagram","post","16"]},{l:"Strong content (12)",k:["content","math","12","mock"]}]}
+},
+{
+ id:"whitfield", name:"Tyler Whitfield", initials:"TW", role:"U.S. History + Assistant Football Coach", meta:"Alternative-certification candidate · Former college athlete",
+ quick:["Certification: induction pathway","Students voted him 'favorite sub' at his long-term sub job","Coaching certification complete"],
+ resume:["Long-term substitute for one semester, then clinical placement","Runs a highly engaging 'History Hot Seat' role-play routine"],
+ refs:[
+  {who:"Head football coach",txt:"Players would run through a wall for him. He's young and he's one of the guys, which is great for a coach."},
+  {who:"Mentor teacher",txt:"I had to talk to him twice. He was texting a group of players from his personal phone late at night, following students on Instagram, and giving a few of them rides home. After the second talk he stopped the rides and set up a team app. As far as I know he still follows students."}
+ ],
+ interview:[
+  {q:"How do you build relationships with students?",a:"Be real with them. I want them to know I'm not just some teacher. If they need me at 11 p.m., they can reach me."},
+  {q:"What are your boundaries with students online?",a:"I mean, I don't post anything bad. Following them shows I care about their lives."}
+ ],
+ cdpa:[[22,4],[3,4],[2,2],[16,2],[21,2],[20,3]],
+ verdict:{type:"no",headline:"Don't hire (this cycle)",
+  summary:"This is the one most preservice teachers get wrong, because Tyler is likable and his students are engaged. But he has been told twice, he only partly changed, and in the interview he described late-night availability and following students as caring. Boundaries are not a teaching skill you coach over a year. They protect students on day one.",
+  strengths:["Item 22 and 3: real energy and enthusiasm","Engaging instruction that students respond to"],
+  deal:"Georgia's Code of Ethics Standard 2 (Conduct with Students) requires a professional relationship with all students in and outside the classroom, and names soliciting or maintaining an inappropriate written, verbal, electronic, or physical relationship as unethical. The CDPA describes the 'friend role' without authority under Item 2, Needs Development. Private late-night texting, rides, and personal social media with students are the patterns districts train every employee to avoid.",
+  evidence:[
+   {t:"The Code defines 'inappropriate' as conduct or communication that goes beyond the bounds of an educator–student relationship, and it explicitly includes electronic relationships.",c:"GaPSC Rule 505-6-.01, Standards 2 and 9"},
+   {t:"Strong teacher–student relationships matter for engagement. That's exactly why the boundary matters: the relationship has to stay professional to stay safe.",c:"Roorda et al., 2011"}
+  ],
+  cues:[{l:"Boundaries / friend role (2)",k:["boundar","friend","2 ","appropriate","relationship"]},{l:"Texting & social media (16)",k:["text","instagram","social","phone","16","follow"]},{l:"Rides / outside contact",k:["ride","home","11 p.m","late"]},{l:"Ethics Standard 2",k:["standard 2","code of ethics","ethic"]},{l:"Partial change after warnings",k:["twice","warn","told","still"]}]}
+},
+{
+ id:"grant", name:"Aisha Grant", initials:"AG", role:"6th Grade ELA", meta:"MAT completer · Student taught in a multilingual middle school",
+ quick:["ESOL endorsement in progress","Published a classroom anthology of student memoirs","Quiet, reserved interviewer"],
+ resume:["Designed tiered reading groups using student interest surveys","Built a 'mirrors and windows' classroom library with student-chosen titles"],
+ refs:[
+  {who:"Mentor teacher",txt:"She sees every kid. Her newcomers wrote memoir pieces they read aloud at a family night. Her weakness is the adults. She avoids calling parents unless there's a behavior problem, and she barely speaks in team meetings."},
+  {who:"University supervisor",txt:"Her differentiation is the best in her cohort. Her expectations are high for every student, and she adjusts instruction rather than lowering the bar."}
+ ],
+ interview:[
+  {q:"How do you communicate with families?",a:"Honestly, it makes me nervous. I usually email when something goes wrong. I know I should be calling home about good things too."},
+  {q:"Describe a struggling reader you reached.",a:"A boy who'd been labeled a non-reader. He loved soccer, so we started with sports journalism. By spring he was reading a novel in verse with his group."}
+ ],
+ cdpa:[[5,4],[13,4],[2,4],[14,3],[4,2],[8,2]],
+ verdict:{type:"hire",headline:"Hire",
+  summary:"Aisha's weaknesses are with adults, and her strengths are with students. That's the right way around. Parent communication is a learnable routine. High expectations and genuine respect for students' cultures are much harder to build in someone who doesn't have them.",
+  strengths:["Item 5: high expectations for all, with tailored instruction","Item 13: culturally responsive library and family night","Item 2: rapport with every student, including newcomers"],
+  train:[{item:4,plan:"Two positive phone calls or messages home per week, logged. Give her a script and a family-communication template for the first month."},{item:8,plan:"Assign a team-meeting role (note-taker, then data lead) so she has a defined way to contribute."}],
+  evidence:[
+   {t:"Teacher expectations have measurable long-run effects. One study found teacher expectations causally affect whether students complete college.",c:"Papageorge, Gershenson, & Kang, IZA DP 10165"},
+   {t:"Coaching paired with group training showed even larger effects. A family-communication routine is a natural coaching target.",c:"Kraft, Blazar, & Hogan, 2018"}
+  ],
+  cues:[{l:"High expectations (5)",k:["expect","5","all students","bar"]},{l:"Cultural responsiveness (13)",k:["cultur","13","divers","multilingual","newcomer"]},{l:"Parent communication (4)",k:["parent","famil","communic","4","call"]},{l:"Shy with adults (8)",k:["adult","colleague","team","meeting","8","shy","quiet"]}]}
+},
+{
+ id:"kessler", name:"Brandon Kessler", initials:"BK", role:"Chemistry & AP Chemistry", meta:"Career changer · Eight years as an industrial chemist",
+ quick:["Chemistry is a critical-shortage area","Can teach AP from year one","GACE Chemistry: high score"],
+ resume:["Built a forensics mini-unit from real lab protocols","Volunteered with the school's Science Olympiad team"],
+ refs:[
+  {who:"Mentor teacher",txt:"Brilliant chemist. But he gave his 'standard' section a simpler worksheet version of every lab and told me some of those kids 'aren't going to college anyway.' I counted once: he called on boys 3 to 1 over girls."},
+  {who:"University supervisor",txt:"I raised the tracking and the call-on pattern. He said he was 'just being realistic' about who needs real chemistry."}
+ ],
+ interview:[
+  {q:"How would you teach a section with mixed readiness?",a:"You have to be realistic. Not everyone is cut out for chemistry. I give the lower kids the basics so they pass, and push the ones who'll actually use it."},
+  {q:"What do you think of the feedback you got about calling on students?",a:"The girls just don't volunteer as much. I can't force it."}
+ ],
+ cdpa:[[12,4],[10,3],[5,1],[15,1],[13,2],[11,2]],
+ verdict:{type:"no",headline:"Don't hire",
+  summary:"The shortage makes this tempting, and his content knowledge is real. But Brandon holds a belief that some students can't learn chemistry, acts on it by lowering the work, and repeated it in your interview after being coached on it. A classroom of 150 students a year would absorb that belief.",
+  strengths:["Item 12: deep, current content from industry","Real-world lab protocols students could benefit from"],
+  deal:"CDPA Item 5 at Unacceptable describes exactly this: low expectations for some students shown by lowering standards. Item 15 describes treating students unfairly based on stereotypes. Unlike a habit, this is a belief, and he defended it under feedback (Item 11).",
+  evidence:[
+   {t:"When two teachers rated the same Black student, the non-Black teacher was about 30% less likely to expect a four-year degree. Teacher expectations are not neutral.",c:"Gershenson, Holt, & Papageorge, 2016"},
+   {t:"Teacher expectations have causal effects on students' college completion.",c:"Papageorge, Gershenson, & Kang, IZA DP 10165"},
+   {t:"Staffing pressure is real, but a bad hire in a shortage area is still a bad hire. Consider a long-term sub, a virtual AP option, or a co-teaching arrangement while you keep recruiting.",c:"Committee note"}
+  ],
+  cues:[{l:"Low expectations (5)",k:["expect","5","college","lower","can't learn","realistic"]},{l:"Fairness / equity (15)",k:["fair","equit","15","stereotyp"]},{l:"Gender bias (13)",k:["girls","gender","boys","13","bias"]},{l:"Resisted feedback (11)",k:["feedback","11","defend","coach"]},{l:"Shortage temptation",k:["shortage","need","hard to fill"]}]}
+},
+{
+ id:"raman", name:"Priya Raman", initials:"PR", role:"8th Grade Physical Science", meta:"MAT completer · Student taught at a crowded middle school",
+ quick:["GACE Middle Grades Science: passed","Organizes the Science Fair committee","Former tutor at a learning center"],
+ resume:["Runs inquiry labs with clear role cards for every group","Started a teacher-led reading group on classroom management"],
+ refs:[
+  {who:"Mentor teacher",txt:"In October a lab fell apart, a group spilled vinegar everywhere, and she teared up and said 'I can't do this' in front of the class. She came to me that afternoon with a plan. It didn't happen again. She's one of the most reflective student teachers I've had."},
+  {who:"University supervisor",txt:"She asks for feedback before I can give it. She read two books on classroom management on her own and tried the routines."}
+ ],
+ interview:[
+  {q:"Tell us about a hard day.",a:"The vinegar day. I let my stress show and the kids saw it. I learned I need a reset routine for me, not just for them. I take one breath, give a task, and step to the door for ten seconds."},
+  {q:"What support do you want in your first year?",a:"A mentor who'll be honest with me, and someone to observe in their room."}
+ ],
+ cdpa:[[11,4],[20,4],[10,3],[2,3],[18,2],[7,3]],
+ verdict:{type:"hire",headline:"Hire, with a mentor match",
+  summary:"One emotional moment in a hard first semester, followed by reflection and a working strategy, is not a self-control problem. It's a new teacher learning. Priya's teachability and initiative are exemplary, and those predict growth.",
+  strengths:["Item 11: seeks feedback and reads the literature on her own","Item 20: initiative beyond what's required","Item 7: dependable follow-through"],
+  train:[{item:18,plan:"Match her with an experienced mentor. Include stress-management and classroom-reset routines in new-teacher induction."}],
+  evidence:[
+   {t:"Teachers' social and emotional competence supports relationships, classroom management, and a positive climate, and it can be strengthened through targeted programs.",c:"Jennings & Greenberg, 2009"},
+   {t:"Supportive professional environments help teachers keep improving across their first ten years.",c:"Kraft & Papay, 2014"}
+  ],
+  cues:[{l:"Self-control (18)",k:["stress","cried","tear","18","self-control","compos"]},{l:"Teachability (11)",k:["feedback","reflect","11","teachab"]},{l:"Initiative (20)",k:["initiative","20","on her own","read"]},{l:"One incident, then growth",k:["once","one time","learned","grew","growth","plan"]}]}
+},
+{
+ id:"doyle", name:"Kevin Doyle", initials:"KD", role:"Health & PE", meta:"MAT completer · Assistant track coach during student teaching",
+ quick:["Never missed a day of student teaching","Mentor calls him 'the most reliable person in the building'","Organized the field-day schedule"],
+ resume:["Built a fitness-goals unit where students tracked their own progress","Helped run the school's 5K fundraiser"],
+ refs:[
+  {who:"Mentor teacher",txt:"Reliable, organized, great with kids. In February a 9th grader showed him bruises on her arm and said her stepdad 'gets rough.' Kevin told her to come back if it happened again. He told me about it eight days later. I reported it that day."},
+  {who:"University supervisor",txt:"When we discussed it he said he didn't want to get the family in trouble without being sure."}
+ ],
+ interview:[
+  {q:"A student tells you something that worries you about home. What do you do?",a:"Listen, make sure they're safe, and if I'm sure something's going on, report it."},
+  {q:"What does 'sure' mean to you?",a:"I'd want more than one story. You don't want to wreck a family over a misunderstanding."}
+ ],
+ cdpa:[[7,4],[6,4],[2,3],[17,3],[1,1],[21,1]],
+ verdict:{type:"no",headline:"Don't hire",
+  summary:"Everything about Kevin is dependable except the one thing that cannot fail. In Georgia, teachers are mandated reporters. The standard is reasonable cause to believe, not certainty, and the deadline is 24 hours. Kevin waited eight days and, in your interview, still described a standard of proof the law doesn't ask for.",
+  strengths:["Items 6 and 7: perfect attendance and reliability","Good rapport with students"],
+  deal:"O.C.G.A. § 19-7-5 lists school teachers as mandated reporters and requires a report immediately, and no later than 24 hours, once there is reasonable cause to believe abuse occurred. Knowingly and willfully failing to report is a misdemeanor. GaPSC Standard 8 also requires reporting child abuse. Teachers do not investigate first; that is the child welfare agency's job.",
+  evidence:[
+   {t:"Teachers must report suspected abuse immediately, but in no case later than 24 hours from the time there is reasonable cause to believe it occurred.",c:"O.C.G.A. § 19-7-5(e)"},
+   {t:"The Code of Ethics treats failure to make a required report of child abuse as unethical conduct.",c:"GaPSC Rule 505-6-.01, Standard 8"},
+   {t:"A teachable moment for your own practice: if a student discloses, you listen, don't promise secrecy, don't investigate, and report the same day using your district's procedure.",c:"Committee note"}
+  ],
+  cues:[{l:"Mandated reporting",k:["report","mandat","dfcs","abuse"]},{l:"24-hour rule",k:["24","hours","day","immediately","eight days","8 days"]},{l:"Integrity / judgment (1, 21)",k:["integrity","judg","21","1 "]},{l:"Reasonable cause, not proof",k:["sure","proof","certain","reasonable"]}]}
+},
+{
+ id:"wright", name:"Jasmine Wright", initials:"JW", role:"10th Grade English", meta:"MAT completer · Single parent of a toddler",
+ quick:["Student-teaching evaluations: strong","Started a poetry slam club","Volunteered at school's literacy night"],
+ resume:["Seven absences and four tardies during her student-teaching semester","Her poetry club performed at the district arts showcase"],
+ refs:[
+  {who:"Mentor teacher",txt:"When she's here, she's excellent. Kids wrote more for her than they did for me. But she missed seven days and was late four times. Her daycare closed suddenly in October and she scrambled for two months. Since January she's been on time every day."},
+  {who:"University supervisor",txt:"She communicated every absence ahead of time and left full sub plans. That matters."}
+ ],
+ interview:[
+  {q:"Walk us through your attendance this year.",a:"October and November were hard. My childcare fell through. I now have a primary center and a backup with my mom ten minutes away. I haven't missed a day since January."},
+  {q:"How do you handle a day you can't be there?",a:"I keep a sub folder with three days of ready plans for each class."}
+ ],
+ cdpa:[[22,4],[20,4],[10,3],[4,4],[6,1],[17,3]],
+ verdict:{type:"judge",lean:"hire",headline:"Judgment call. The committee leaned hire.",
+  summary:"On paper, Item 6 is at Unacceptable: the CDPA line is more than two tardies a semester. But the pattern had a cause, it's been fixed for months, and she handled it professionally with notice and sub plans. Several committee members were ready to pass, and that's defensible too. The tiebreaker was three months of perfect attendance after she solved the problem.",
+  strengths:["Items 20 and 22: initiative and passion, with a club students flocked to","Item 4: communicated absences in advance with full sub plans"],
+  train:[{item:6,plan:"State the attendance expectation clearly at hire, the same as for every new teacher, and review attendance at each TKES check-in."}],
+  deal:"A legal caution for future principals: Federal anti-discrimination law covers sex, and decisions based on caregiver stereotypes can create risk. Ask every candidate the same attendance question rather than asking about children or childcare. Here, Jasmine volunteered it.",
+  evidence:[
+   {t:"Teacher absences do hurt learning. One study estimated each 10 days of absence lowers students' math achievement by 3.3% of a standard deviation. That's why attendance belongs in your decision.",c:"Miller, Murnane, & Willett, 2008"},
+   {t:"The same study found a significant share of teacher absences is discretionary. Jasmine's were not, and they stopped once the cause was fixed.",c:"Miller, Murnane, & Willett, 2008"}
+  ],
+  cues:[{l:"Attendance (6)",k:["absen","attend","tard","6","late"]},{l:"Root cause fixed",k:["childcare","daycare","backup","fixed","since january","resolved"]},{l:"Communicated professionally (4)",k:["sub plan","communic","notice","4"]},{l:"Strong teaching (20, 22)",k:["passion","club","poetry","initiative","20","22"]}]}
+},
+{
+ id:"morales", name:"Ethan Morales", initials:"EM", role:"Geometry & Algebra II", meta:"MAT completer · Former engineering student",
+ quick:["Students' unit-test growth: highest in the department during his placement","Built his own online practice bank","Teams with no one"],
+ resume:["Wrote 400 self-checking practice problems","Declined to join his mentor's PLC planning sessions after week three"],
+ refs:[
+  {who:"Mentor teacher",txt:"His results are impressive. But he won't plan with the team. He told the other Algebra II teacher her unit was 'a waste of time,' and I heard him complaining about the principal in the hallway with students nearby."},
+  {who:"Department chair",txt:"He's a great individual teacher. He's also the reason two of my people dreaded Tuesday PLC."}
+ ],
+ interview:[
+  {q:"How do you work with a team that plans differently?",a:"I do my own thing and get results. PLCs are mostly people talking about worksheets."},
+  {q:"What would make you a good colleague?",a:"I'm happy to share my practice bank if people want it."}
+ ],
+ cdpa:[[12,4],[14,4],[10,4],[9,2],[23,2],[3,2]],
+ verdict:{type:"judge",lean:"pass",headline:"Judgment call. The committee leaned don't hire.",
+  summary:"Ethan's classroom results are real. But a school is a team, and his file shows a pattern of dismissing colleagues and complaining about leadership in front of students. Some principals would hire him into a department with a strong chair and clear norms. This committee didn't, because attitude toward colleagues was the hardest thing to coach and the most contagious.",
+  strengths:["Items 12, 14, 10: exceptional content, assessment, and preparation","Generous with materials when asked"],
+  train:[{item:9,plan:"If you hire him: set PLC participation as a written job expectation, give him a lead role on assessment design, and check norms at 30 days."}],
+  deal:"CDPA Item 9 at Needs Development names gossip, pettiness, and not carrying weight on team work. Items 3 and 23 at Needs Development describe speaking freely of discontent with the school or administration. One teacher can lower the professional environment for everyone around him.",
+  evidence:[
+   {t:"In a study of 9,000 teachers in 336 Miami-Dade schools, teachers improved faster in schools with better-quality collaboration. Collaboration on assessment was especially predictive of math gains.",c:"Ronfeldt et al., 2015"},
+   {t:"School professional environment, including peer collaboration, explains part of why some teachers keep improving and others stall.",c:"Kraft & Papay, 2014"}
+  ],
+  cues:[{l:"Collaboration (9)",k:["collab","team","plc","9","colleague"]},{l:"Negativity about school (3, 23)",k:["complain","attitude","principal","negativ","3","23"]},{l:"Strong results (12, 14)",k:["results","growth","content","assess","12","14"]},{l:"Culture risk",k:["culture","contag","toxic","morale"]}]}
+},
+{
+ id:"han", name:"Rachel Han", initials:"RH", role:"Spanish I & II", meta:"MAT completer · Studied abroad in Valencia",
+ quick:["Résumé lists: 'GACE Spanish: passed'","Résumé lists: 'Presenter, state world-language conference'","Native-like fluency in interview"],
+ resume:["Designed a 'virtual mercado' unit with real menus and receipts","Résumé claims GACE content passed and a state conference presentation"],
+ refs:[
+  {who:"HR certification check",txt:"The GaPSC record shows she has attempted the GACE Spanish content test but not yet passed it. Her next test date is in three weeks."},
+  {who:"University supervisor",txt:"The conference was a poster session. Her professor presented and Rachel helped prepare the poster. She is a lovely teacher with real gifts."}
+ ],
+ interview:[
+  {q:"Your certification check doesn't match your résumé. Help us understand.",a:"I'm going to pass it this month. I didn't think it mattered to put 'passed' since it's basically done."},
+  {q:"And the conference?",a:"I was part of it. I think 'presenter' is fair."}
+ ],
+ cdpa:[[12,4],[22,4],[2,4],[10,3],[1,1],[21,2]],
+ verdict:{type:"no",headline:"Don't hire",
+  summary:"You will hire teachers who haven't passed a test yet; that's what provisional pathways are for. You can't hire one who wrote that she had. Rachel inflated two credentials, and when asked directly she defended both. Honesty is the floor that every other part of the job sits on, from grades to attendance records.",
+  strengths:["Items 12, 22, 2: fluent, passionate, and great with students","An authentic, creative unit design"],
+  deal:"Georgia's Code of Ethics Standard 4 (Honesty) lists falsifying, misrepresenting, or omitting professional qualifications as unethical conduct. CDPA Item 1 (Integrity) at Unacceptable describes conduct that could cause certification to be denied.",
+  evidence:[
+   {t:"The Code names misrepresenting professional qualifications and information submitted in the course of professional practice under Standard 4.",c:"GaPSC Rule 505-6-.01, Standard 4"},
+   {t:"Sanctions available to the GaPSC include denial of initial certification, reprimand, warning, monitoring, suspension, and revocation.",c:"GaPSC Rule 505-6-.01, Section 6"},
+   {t:"Had Rachel listed 'GACE Spanish: scheduled' and 'poster co-author,' she would likely have been a strong provisional hire.",c:"Committee note"}
+  ],
+  cues:[{l:"Honesty (1, Std 4)",k:["honest","lie","lied","misrepresent","integrity","standard 4","falsif","1 "]},{l:"Résumé inflation",k:["résumé","resume","gace","poster","conference","credential"]},{l:"Doubled down",k:["defend","fair","doubled","own"]},{l:"Real talent",k:["fluent","passion","great","22","12"]}]}
+},
+{
+ id:"shaw", name:"Derek Shaw", initials:"DS", role:"7th Grade Life Science", meta:"MAT completer · Student taught at a suburban middle school",
+ quick:["GACE Middle Grades Science: passed on second attempt","Kind, even-tempered, never raises his voice","Says the schedule fits his family well"],
+ resume:["Taught his ecology and classification units from a printed worksheet packet he found online, dated 2004","Used the publisher test bank for every unit test"],
+ refs:[
+  {who:"Mentor teacher",txt:"Students like him. He's calm and fair. But his packet still teaches five kingdoms and the 'tongue map,' and he didn't question either when a student pushed back. His unit test asked about vocabulary we never covered. He didn't use exit tickets or any quick checks."},
+  {who:"University supervisor",txt:"Plans were usually finished the night before, and twice the copies weren't made when class started. When I asked what excited him about science, he said he likes that 'it's pretty straightforward to teach.'"}
+ ],
+ interview:[
+  {q:"What draws you to teaching?",a:"Honestly, the schedule works for my family, and I like kids. It's a steady job."},
+  {q:"How do you know students learned the material?",a:"The unit test. If most of them pass, we move on."}
+ ],
+ cdpa:[[2,3],[13,3],[12,2],[14,2],[10,2],[22,2]],
+ verdict:{type:"no",headline:"Don't hire",
+  summary:"Derek has no ethical red flags, and he's kind to kids. That makes this one hard to say no to. But the file shows weaknesses in the core of the job: outdated content he doesn't question, tests that don't match what he taught, loose planning, and little enthusiasm for the subject. There is no exemplary strength to build a growth plan around. Compare him with Sophie Lin, who is proficient everywhere.",
+  strengths:["Item 2: calm, positive interactions with students","Item 13: respectful toward every student"],
+  deal:"CDPA Item 12 at Needs Development describes unintentionally using outdated materials without questioning them, and failing to see knowledge as dynamic. Item 14 describes assessments that don't align with objectives and no formative measures. Item 10 describes loosely planned lessons and missing supplies. Item 22 describes commitment without enthusiasm. Each alone is coachable. Together, students lose a year while he learns.",
+  evidence:[
+   {t:"Coaching helps, but large programs produced only a fraction of the effects found in small trials. A plan with four simultaneous targets is a long shot.",c:"Kraft, Blazar, & Hogan, 2018"},
+   {t:"Screening measures like sample lessons and interviews predict on-the-job performance. Derek's interview answers about learning and assessment are the signal.",c:"Jacob et al., 2018"},
+   {t:"Science knowledge changes. Five-kingdom classification and the tongue map are both long superseded, which is why Item 12 asks teachers to stay current.",c:"Committee note"}
+  ],
+  cues:[{l:"Outdated content (12)",k:["outdated","2004","kingdom","tongue","content","12","current"]},{l:"Misaligned assessment (14)",k:["assess","test","formative","exit","align","14"]},{l:"Loose planning (10)",k:["plan","copies","prepar","organiz","10","night before"]},{l:"Low passion (22)",k:["passion","enthusias","schedule","22","excite"]},{l:"No strength to build on",k:["nothing exemplary","no strength","build on","proficient"]}]}
+},
+{
+ id:"lin", name:"Sophie Lin", initials:"SL", role:"7th Grade Social Studies", meta:"MAT completer · Student taught at a rural middle school",
+ quick:["Every CDPA item at Proficient or close","No standout projects","Calm, organized interviewer"],
+ resume:["Taught the full Georgia Studies sequence with her mentor's materials","Completed every assignment on time"],
+ refs:[
+  {who:"Mentor teacher",txt:"Solid. She does what's asked and does it well. I sometimes had to nudge her to try something new, but once she tried the gallery walk she kept using it."},
+  {who:"University supervisor",txt:"Dependable and kind. Not flashy. She'll be a steady teacher who gets better every year."}
+ ],
+ interview:[
+  {q:"What's something you'd like to try that you haven't yet?",a:"I'd like to try a simulation unit, maybe a mock legislature. I'd want to see someone do it first."},
+  {q:"What do you need from a principal?",a:"Clear expectations and someone to tell me what I'm doing well and what I'm not."}
+ ],
+ cdpa:[[7,3],[2,3],[10,3],[17,3],[11,3],[20,2]],
+ verdict:{type:"hire",headline:"Hire",
+  summary:"Not every good hire is a star. Sophie is proficient across the board, reliable, kind to students, and asks for feedback. Her one Needs Development, initiative, improves when she sees a model. In a building with good colleagues, this is the teacher who quietly gets better for 20 years.",
+  strengths:["Item 7: dependable and on time","Item 11: asks for clear feedback","No ethical, safety, or belief concerns anywhere in the file"],
+  train:[{item:20,plan:"Schedule two peer observations in fall with colleagues who run simulations and project units, then co-plan one with her."}],
+  evidence:[
+   {t:"Teachers make rapid gains early in their careers, and supportive environments keep that growth going for a decade.",c:"Kraft & Papay, 2014"},
+   {t:"Teachers improve faster in schools with high-quality team collaboration. Sophie's growth plan depends on yours.",c:"Ronfeldt et al., 2015"}
+  ],
+  cues:[{l:"Solid & proficient",k:["proficient","solid","steady","reliable","consistent","7"]},{l:"Initiative (20)",k:["initiative","20","nudge","new"]},{l:"Grows with modeling",k:["model","observe","peer","see someone"]},{l:"No red flags",k:["no red","no concern","safe","no ethic"]}]}
+},
+{
+ id:"pierce", name:"Jordan Pierce", initials:"JP", role:"Earth Systems (9th grade)", meta:"MAT completer · Former state park ranger",
+ quick:["B.S. Geology","Licensed drone pilot","Built a GIS flood-mapping lab with real county data"],
+ resume:["Students mapped their own neighborhood's flood risk using public GIS layers","Two dress-code reminders from the placement school; wore open-toed sandals in the lab once","Missed bus duty twice and turned midterm grades in a day late"],
+ refs:[
+  {who:"Mentor teacher",txt:"Content-wise, the best Earth Science student teacher I've had, and kids loved the drone lessons. But he showed up in a hoodie and ripped jeans more than once, and sandals on a lab day. When the Chromebook cart died mid-lesson, he froze, then put on a 40-minute video. He's a little scattered with duty and deadlines."},
+  {who:"Assistant principal, placement school",txt:"Each time I mentioned the dress code, he fixed it the next day without complaint. He just needs things spelled out."}
+ ],
+ interview:[
+  {q:"Your tech fails five minutes into a lesson. What do you do?",a:"Honestly, last time I panicked. Now I keep a paper version of every lab in a bin, and I'd switch to a think-pair-share on the data while I troubleshoot."},
+  {q:"What does 'professional' look like to you?",a:"Coming from the park service, I was in a uniform. I didn't think enough about what to wear without one. I've got that sorted now."}
+ ],
+ cdpa:[[12,4],[16,4],[2,3],[19,2],[24,2],[7,2]],
+ verdict:{type:"hire",headline:"Hire, with a 90-day growth plan",
+  summary:"Jordan's weak spots are appearance, backup planning, and follow-through on routine duties. All three are habits, he has already started fixing them, and he responds to clear expectations. His content and technology integration are rare in a 9th grade science hire.",
+  strengths:["Item 12: deep, current content with authentic local data","Item 16: uses technology to deepen learning, not decorate it","Item 2: students engaged and invested"],
+  train:[{item:19,plan:"Hand him the faculty dress code and the lab safety footwear rule in writing at hire. Closed-toe shoes in labs is a safety rule, not a style choice."},{item:24,plan:"Require a no-tech backup for every lesson that depends on devices for the first semester. Review it during mentor check-ins."},{item:7,plan:"Put duty schedule and grading deadlines in his calendar with reminders. Check in after the first grading period."}],
+  evidence:[
+   {t:"Coaching and group training together produced larger effects on instruction than coaching alone. Induction plus a mentor is the right setup for habits like these.",c:"Kraft, Blazar, & Hogan, 2018"},
+   {t:"No single trait predicts teacher success; combined cognitive and non-cognitive measures do better. Weigh his strengths and weaknesses together.",c:"Rockoff et al., 2011"}
+  ],
+  cues:[{l:"Appearance & lab safety (19)",k:["dress","appearance","hoodie","jeans","sandal","shoes","19"]},{l:"Problem solving (24)",k:["froze","video","backup","problem","24","tech fail"]},{l:"Dependability (7)",k:["duty","deadline","grades late","dependab","7","follow"]},{l:"Strong content & tech (12, 16)",k:["gis","drone","content","technology","12","16"]},{l:"Responds to feedback",k:["fixed","feedback","responds","next day"]}]}
+}
+];
+
+/* Real-world cases: verified news reports, state data, and studies. Individuals are not named. */
+const GPB={l:"GPB / Macon Telegraph, Feb. 2025",u:"https://gpb.org/node/1272141"};
+const REAL={
+ bell:{h:"Who stays in teaching? National data",t:"A national study of first-year teachers found that those given a mentor in their own subject, and time to plan with colleagues, were less likely to change schools or leave teaching after year one. In practice, many Georgia districts build induction around exactly these two supports.",s:[{l:"Ingersoll & Smith, 2004, American Educational Research Journal",u:"https://repository.upenn.edu/gse_pubs/135/"}]},
+ ortiz:{h:"A 'private' account that went public",t:"In 2016, an elementary teacher in Baltimore County, Maryland, posted classroom photos of her students with demeaning captions on a private Instagram account. Screenshots spread online, parents objected, and the district said she would face discipline. In Georgia, reporters reviewing state ethics data in 2025 named social media misuse as one reason educator ethics cases are rising.",s:[{l:"CBS Baltimore, Oct. 2016",u:"https://www.cbsnews.com/baltimore/news/teacher-in-hot-water-for-degrading-social-media-posts-about-students/"},GPB]},
+ whitfield:{h:"What the Georgia ethics data shows",t:"The GaPSC opened more than 1,850 ethics cases against K-12 educators in fiscal year 2024, more than in any of the nine years before. From January 2019 to May 2024, at least 1,830 Georgia educator certificates were suspended, revoked, or surrendered. Conduct with students was one of the top four reasons for sanctions, and the commission's examples include private messages to students on social media.",s:[GPB]},
+ grant:{h:"A phone call home, tested in a real experiment",t:"Researchers randomly assigned 6th and 9th graders in a summer program to get a daily phone call home plus a text or written message. Students whose families were contacted had 42% higher odds of completing homework, teachers had to redirect them 25% less often, and 6th-grade participation rose 49%. This is the routine Aisha's growth plan asks her to build.",s:[{l:"Kraft & Dougherty, 2013, Journal of Research on Educational Effectiveness",u:"https://www.matthewakraft.com/new-page-95"}]},
+ kessler:{h:"The Opportunity Myth",t:"TNTP followed about 4,000 students in five school systems for a year. Students met the demands of their assignments 71% of the time, but those assignments reached grade level only 17% of the time. More than 80% of teachers supported college-ready standards, yet fewer than half expected their own students to meet them. Students in classrooms where teachers held higher expectations gained more than four months of learning.",s:[{l:"TNTP, The Opportunity Myth, 2018",u:"https://tntp.org/press-release/new-research-follows-4000-students-finds-most-are-missing-key-in-school-res/"}]},
+ raman:{h:"Priya is not unusual",t:"In RAND's 2024 national survey, 59% of teachers said their work is often or always stressful, about twice the rate of other working adults. At the height of the pandemic the figure was 78%. A new teacher who names her stress and builds a reset routine is doing what induction programs try to teach.",s:[{l:"Child Trends summary of RAND State of the American Teacher, 2024",u:"https://www.childtrends.org/publications/teachers-job-related-stress-remains-high"}]},
+ doyle:{h:"When school staff don't report",t:"In 2022, two assistant principals at a high school in Rialto, California, were each charged with felony child abuse and misdemeanor failure to report. Prosecutors alleged that two girls told them about sexual assaults by the same student and the reports never reached police, and that the delay led to a preventable assault on a third girl. These were charges, not convictions. A Georgia nuance: in 2017 a north Georgia high school coach was charged for not reporting a disclosure he heard at an off-duty party, and the charge was dropped because Georgia's law, as the state Supreme Court has read it, covers what educators learn in their professional role. Kevin's student told him at school, which is exactly what the law covers.",s:[{l:"FOX 11 Los Angeles, Feb. 2022",u:"https://www.foxla.com/news/assistant-principals-charged-rialto-campus-sex-assaults"},{l:"WDEF News 12, Chattanooga",u:"https://www.wdef.com/?p=57119"}]},
+ wright:{h:"How common is teacher absence?",t:"Federal Civil Rights Data Collection figures for 2015-16 showed that 28% of U.S. teachers missed more than 10 school days that year. Absence is common, so the principal's real question is the pattern: is it ongoing and discretionary, or a solved problem with a clear cause?",s:[{l:"Education Week, June 2018",u:"https://www.edweek.org/leadership/how-many-teachers-are-chronically-absent-from-class-in-your-state/2018/06"}]},
+ morales:{h:"Good colleagues make better teachers",t:"Using North Carolina data, economists found that students learned more in math and reading when their teacher's colleagues were more effective, and the effect was strongest for less-experienced teachers. Peer quality explained about 20% of a teacher's own effect. A teacher who won't share or plan withholds that benefit from the newer teachers around him. In Georgia's ethics data, Standard 9 (professional conduct), which includes disrespecting colleagues, makes up about 30% of cases each year.",s:[{l:"Jackson & Bruegmann, 2009, NBER",u:"https://www.nber.org/papers/w15202"},GPB]},
+ han:{h:"Honesty cases in Georgia",t:"A newspaper review of more than 5,000 alleged Georgia educator ethics violations from 2019 to 2024 found honesty among the top four reasons for sanctions. About 75% of Standard 4 honesty violations involved dishonestly completing applications. Rachel's résumé is exactly that kind of case.",s:[GPB]},
+ shaw:{h:"Knowing what students get wrong",t:"A study of 181 middle school physical science teachers and nearly 10,000 students found that teachers who could predict their students' most common wrong answers produced the biggest learning gains. Derek did the opposite: he taught two long-debunked ideas and didn't question them when a student pushed back.",s:[{l:"Sadler et al., 2013, American Educational Research Journal (ScienceDaily summary)",u:"https://www.sciencedaily.com/releases/2013/05/130502131936.htm"}]},
+ lin:{h:"Steady teachers keep getting better",t:"Researchers found that teachers improve rapidly in their first years and keep improving well beyond them. A proficient new hire in a supportive school is a long-term investment.",s:[{l:"Papay & Kraft, 2015, Journal of Public Economics",u:"https://annenberg.brown.edu/publications/productivity-returns-experience-teacher-labor-market-methodological-challenges-and-new"}]},
+ pierce:{h:"Why lab safety rules are not optional",t:"In a New York City high school chemistry class, a flame-color 'rainbow' demonstration caused an explosion and fire that left a sophomore with severe burns. In 2019 a jury awarded him nearly $60 million, and the American Chemical Society's safety committee recommended schools stop using the demonstration. The ACS student lab code requires closed-toe shoes and bans sandals and flip-flops. Jordan's sandals on a lab day are a safety issue, and his backup-plan gap is a problem-solving issue: both get fixed before he runs a lab.",s:[{l:"WTKR / CNN, July 2019",u:"https://www.wtkr.com/2019/07/03/a-failed-high-school-chemistry-experiment-resulted-in-nearly-60-million-in-damages"},{l:"American Chemical Society, sample lab safety guidelines",u:"https://www.acs.org/content/dam/acsorg/chemical-safety/teach--and-learn/sample-lab-safety-guidelines-and-safety-acknowledgment-forms.pdf"}]}
+};
+
+const KEY="hiring-desk-v1";
+let state={cur:0,d:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.d) state=s;}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MIN=60;
+
+function committeeCall(v){return v.type==="hire"?"hire":v.type==="no"?"pass":v.lean;}
+function matched(c){const d=state.d[c.id]; if(!d||!d.locked) return null; if(c.verdict.type==="judge") return true; return d.choice===committeeCall(c.verdict);}
+
+function drawer(){
+  const n=$("#drawer"); n.querySelectorAll(".tab").forEach(t=>t.remove());
+  C.forEach((c,i)=>{
+    const d=state.d[c.id]; const st=d&&d.locked?(d.choice==="hire"?'<span class="pill hire">Hired</span>':'<span class="pill pass">Passed</span>'):'<span class="pill open">Open</span>';
+    const b=document.createElement("button"); b.type="button"; b.className="tab"; b.setAttribute("aria-current",i===state.cur?"true":"false");
+    b.innerHTML=`<span class="no">${String(i+1).padStart(2,"0")}</span><span class="nm">${esc(c.name)}<span class="ps">${esc(c.role)}</span></span>${st}`;
+    b.onclick=()=>{state.cur=i;save();render();document.getElementById("main").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});};
+    n.appendChild(b);
+  });
+}
+
+function cdpaRows(list){return list.map(([n,s])=>`<div class="crow"><span><span class="mono">${n}</span> · ${ITEMS[n]}</span><div><div class="scale s${s}" role="img" aria-label="${LEVEL[s]}"><i></i><i></i><i></i><i></i></div><div class="slab">${LEVEL[s]}</div></div></div>`).join("");}
+
+function render(){
+  drawer(); tally(); summary();
+  const c=C[state.cur]; const d=state.d[c.id]||{choice:null,why:"",locked:false};
+  const stamp=d.locked?`<div class="stamp ${d.choice}">${d.choice==="hire"?"HIRED":"NOT HIRED"}</div>`:"";
+  $("#main").innerHTML=`
+  <article class="file" aria-labelledby="cand-name">
+    <div class="file-head">
+      <div class="mono-badge" aria-hidden="true">${c.initials}</div>
+      <div><div class="fileno">Personnel file ${String(state.cur+1).padStart(2,"0")} of ${C.length}</div><h2 id="cand-name">${esc(c.name)}</h2><div class="meta"><strong>${esc(c.role)}</strong> · ${esc(c.meta)}</div></div>
+      ${stamp}
+    </div>
+    <div class="file-body">
+      <div class="quick">${c.quick.map(q=>`<span>${esc(q)}</span>`).join("")}</div>
+      <div class="two">
+        <section class="sec"><h3>Résumé highlights <i>application</i></h3><ul>${c.resume.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></section>
+        <section class="sec"><h3>CDPA snapshot <i>university supervisor</i></h3><div class="cdpa">${cdpaRows(c.cdpa)}</div><p class="legend">Selected items only. 1 Unacceptable · 2 Needs Development · 3 Proficient · 4 Exemplary</p></section>
+      </div>
+      <section class="sec"><h3>Reference calls <i>your notes</i></h3>${c.refs.map(r=>`<p class="note"><span class="who">${esc(r.who)}</span>${esc(r.txt)}</p>`).join("")}</section>
+      <section class="sec"><h3>Interview <i>panel transcript</i></h3><div class="qa">${c.interview.map(x=>`<p class="q">${esc(x.q)}</p><p class="a">${esc(x.a)}</p>`).join("")}</div></section>
+    </div>
+    <div class="decide">
+      <h3>Your call, Principal</h3>
+      <div class="choices" role="group" aria-label="Hiring decision">
+        <button type="button" id="ch-hire" class="choice hire" aria-pressed="${d.choice==="hire"}" ${d.locked?"disabled":""}><b>Hire</b><small>Offer a contract for next year</small></button>
+        <button type="button" id="ch-pass" class="choice pass" aria-pressed="${d.choice==="pass"}" ${d.locked?"disabled":""}><b>Don't hire</b><small>Thank them and keep recruiting</small></button>
+      </div>
+      <label class="why" for="why">Why? Name the CDPA items and evidence from the file that drove your decision.</label>
+      <textarea id="why" ${d.locked?"disabled":""} placeholder="Example: I'd hire because Item 11 is exemplary: she changed her transitions after one round of feedback. Her Item 17 weakness is a habit we can coach with a planning partner.">${esc(d.why)}</textarea>
+      <div class="row"><span class="count" id="count"></span>${d.locked?'<span class="pill '+(d.choice)+'">Locked in</span>':'<button type="button" class="btn" id="lock">Lock in my decision</button>'}</div>
+      <div id="confirm" class="confirm" hidden><p style="margin:0"><strong>Lock it in?</strong> You won't be able to change your decision or your reasoning after this.</p><div class="row"><button type="button" class="btn" id="yes">Yes, lock it in</button><button type="button" class="btn ghost" id="no">Keep editing</button></div></div>
+    </div>
+    <div id="debrief"></div>
+  </article>`;
+  const why=$("#why"), cnt=$("#count"), lock=$("#lock");
+  function upd(){const L=why.value.trim().length; if(d.locked){cnt.textContent="";return;} cnt.textContent=L<MIN?`${MIN-L} more characters needed`:"Ready to lock in"; if(lock) lock.disabled=!(d.choice&&L>=MIN);}
+  if(!d.locked){
+    $("#ch-hire").onclick=()=>{d.choice="hire";state.d[c.id]=d;save();$("#ch-hire").setAttribute("aria-pressed","true");$("#ch-pass").setAttribute("aria-pressed","false");upd();};
+    $("#ch-pass").onclick=()=>{d.choice="pass";state.d[c.id]=d;save();$("#ch-pass").setAttribute("aria-pressed","true");$("#ch-hire").setAttribute("aria-pressed","false");upd();};
+    why.oninput=()=>{d.why=why.value;state.d[c.id]=d;save();upd();};
+    lock.onclick=()=>{$("#confirm").hidden=false;$("#yes").focus();};
+    $("#no").onclick=()=>{$("#confirm").hidden=true;why.focus();};
+    $("#yes").onclick=()=>{d.locked=true;d.why=why.value.trim();d.at=new Date().toISOString();state.d[c.id]=d;save();render();const db=$("#debrief");if(db)db.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});};
+  }
+  upd();
+  if(d.locked) $("#debrief").innerHTML=debrief(c,d);
+  const nx=$("#next"), pv=$("#prev");
+  if(nx) nx.onclick=()=>{state.cur=Math.min(C.length-1,state.cur+1);save();render();$("#main").scrollIntoView({block:"start"});};
+  if(pv) pv.onclick=()=>{state.cur=Math.max(0,state.cur-1);save();render();$("#main").scrollIntoView({block:"start"});};
+}
+
+function debrief(c,d){
+  const v=c.verdict; const cls=v.type==="hire"?"hire":v.type==="no"?"no":"judge";
+  const m=matched(c);
+  let line;
+  if(v.type==="judge") line=`This one can go either way. You chose <strong>${d.choice==="hire"?"Hire":"Don't hire"}</strong>; the committee leaned <strong>${v.lean==="hire"?"Hire":"Don't hire"}</strong>. What matters is whether your reasoning weighed the same evidence.`;
+  else line=m?`You and the committee agree: <strong>${d.choice==="hire"?"Hire":"Don't hire"}</strong>.`:`You chose <strong>${d.choice==="hire"?"Hire":"Don't hire"}</strong>. The committee went the other way. Read why below, then reread the file.`;
+  const low=(d.why||"").toLowerCase()+" ";
+  const hit=k=>{const t=k.trim(); if(/^\d+$/.test(t)) return new RegExp("(item|#|items?\\s[\\d,\\s&and]*)\\s*"+t+"\\b").test(low); return low.includes(k.toLowerCase());};
+  const cues=v.cues.map(q=>`<span class="cue ${q.k.some(hit)?"hit":""}">${esc(q.l)}</span>`).join("");
+  const train=v.train?`<div class="box train"><h4>Trainable: the growth plan</h4><div class="plan">${v.train.map(t=>`<div><b>Item ${t.item} · ${ITEMS[t.item]}</b><span>${esc(t.plan)}</span></div>`).join("")}</div></div>`:"";
+  const deal=v.deal?`<div class="box deal"><h4>${v.type==="no"?"Why this is a dealbreaker":"The other side of the call"}</h4><p style="margin:0">${esc(v.deal)}</p></div>`:"";
+  return `<section class="debrief" aria-label="Hiring committee debrief">
+    <div class="verdict ${cls}"><span class="tag">Hiring committee debrief</span><h3>${esc(v.headline)}</h3><p class="match">${line}</p><p>${esc(v.summary)}</p></div>
+    <div><div class="eyebrow" style="margin-bottom:6px">Your locked rationale</div><div class="yours">${esc(d.why)}</div></div>
+    <div><div class="eyebrow" style="margin-bottom:8px">Cues the committee weighed · ✓ = your rationale mentioned it</div><div class="cues">${cues}</div></div>
+    <div class="dgrid">
+      <div class="box strong"><h4>What's working in this file</h4><ul>${v.strengths.map(s=>`<li>${esc(s)}</li>`).join("")}</ul></div>
+      ${train}${deal}
+      <div class="box evid"><h4>What the research and Georgia law say</h4><ul>${v.evidence.map(e=>`<li>${esc(e.t)} <span class="cite">(${esc(e.c)})</span></li>`).join("")}</ul></div>
+    </div>
+    ${REAL[c.id]?`<div class="real"><div class="eyebrow">Real-world case</div><h4>${esc(REAL[c.id].h)}</h4><p>${esc(REAL[c.id].t)}</p><p class="cite">Source: ${REAL[c.id].s.map(x=>`<a href="${x.u}" target="_blank" rel="noopener">${esc(x.l)}</a>`).join(" · ")}</p></div>`:""}
+    <div class="nav">${state.cur>0?'<button type="button" class="btn ghost" id="prev">Previous file</button>':'<span></span>'}${state.cur<C.length-1?'<button type="button" class="btn bus" id="next">Next candidate</button>':'<a class="btn bus" href="#summary" style="text-decoration:none">See your hiring record</a>'}</div>
+  </section>`;
+}
+
+function tally(){
+  const locked=C.filter(c=>state.d[c.id]&&state.d[c.id].locked);
+  $("#t-done").textContent=`${locked.length}/${C.length}`;
+  $("#t-hire").textContent=locked.filter(c=>state.d[c.id].choice==="hire").length;
+  $("#t-match").textContent=locked.filter(c=>matched(c)).length;
+}
+function summary(){
+  const locked=C.filter(c=>state.d[c.id]&&state.d[c.id].locked);
+  $("#sum-hint").textContent=locked.length?`${locked.length} of ${C.length} decided. You matched the committee on ${locked.filter(c=>matched(c)).length}. Judgment calls count as a match either way.`:"Decide at least one candidate to start your record.";
+  const lab=c=>c.verdict.type==="judge"?`Judgment call (leaned ${c.verdict.lean==="hire"?"hire":"don't hire"})`:(c.verdict.type==="no"?"Don't hire":"Hire");
+  $("#sum-body").innerHTML=locked.map(c=>{const d=state.d[c.id];return `<tr><td><strong>${esc(c.name)}</strong><br><span class="cite">${esc(c.role)}</span></td><td><span class="pill ${d.choice}">${d.choice==="hire"?"Hire":"Don't hire"}</span></td><td>${lab(c)}</td><td>${esc(d.why)}</td></tr>`}).join("")||`<tr><td colspan="4" class="cite">Nothing locked in yet.</td></tr>`;
+  $("#export").value=locked.length?["THE HIRING DESK — My decisions","",...locked.map((c,i)=>{const d=state.d[c.id];return `${i+1}. ${c.name} (${c.role})\n   My call: ${d.choice==="hire"?"Hire":"Don't hire"} | Committee: ${lab(c)}\n   Why: ${d.why}\n`;}),`Matched the committee: ${locked.filter(c=>matched(c)).length} of ${locked.length}`].join("\n"):"";
+}
+(function coverage(){
+  let h=`<thead><tr><th>CDPA item</th>${C.map((c,i)=>`<th title="${esc(c.name)}">${String(i+1).padStart(2,"0")}<br>${c.initials}</th>`).join("")}<th>Weak in</th></tr></thead><tbody>`;
+  for(let n=1;n<=24;n++){
+    let weak=0;
+    const cells=C.map(c=>{const r=c.cdpa.find(x=>x[0]===n); if(!r) return "<td></td>"; if(r[1]<=2) weak++; return `<td class="c s${r[1]}">${r[1]}</td>`;}).join("");
+    h+=`<tr class="${weak?"":"gap"}"><td><span class="mono">${n}</span> ${ITEMS[n]}</td>${cells}<td class="mono">${weak}</td></tr>`;
+  }
+  $("#cov").innerHTML=h+"</tbody>";
+})();
+$("#copy").onclick=async()=>{const t=$("#export");try{await navigator.clipboard.writeText(t.value);$("#copy").textContent="Copied";setTimeout(()=>$("#copy").textContent="Copy my responses",1800);}catch(e){t.focus();t.select();$("#copy").textContent="Selected. Press Ctrl/Cmd+C";}};
+$("#reset").onclick=()=>{$("#reset-confirm").hidden=false;};
+$("#reset-no").onclick=()=>{$("#reset-confirm").hidden=true;};
+$("#reset-yes").onclick=()=>{state={cur:0,d:{}};save();$("#reset-confirm").hidden=true;render();window.scrollTo(0,0);};
+render();
+</script>
+
+</body>
+</html>
