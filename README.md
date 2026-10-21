@@ -2,7 +2,7 @@
 
 A principal hiring simulation for preservice teachers. Students review 13 fictional candidate files built on the Candidate Dispositions Performance Assessment (CDPA) rubric. For each file they decide **Hire** or **Don't hire**, write a rationale citing CDPA items, and lock in their answer. A hiring-committee debrief then explains the verdict with research, Georgia law, and a real-world case (news report, state data, or study) for every candidate.
 
-**Live page:** https://rcooper2005.github.io/Education-Scenarios/hiring-desk/
+**Live page:** https://rcooper2005.github.io/The-Hiring-Desk/
 
 ## What's in this folder
 
